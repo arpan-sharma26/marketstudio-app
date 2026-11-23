@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Sign in · Market Studio</title>
+<link rel="icon" href="/assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body class="login-body">
+  <main class="login-card">
+    <img src="/assets/logo.png" alt="Market Studio" width="640" height="325">
+    <h1>Sign in to the studio</h1>
+    <p>Campaign performance for Market Studio clients.</p>
+    <form id="login" novalidate>
+      <label for="pw">Password</label>
+      <input id="pw" name="password" type="password" autocomplete="current-password" required autofocus>
+      <p class="form-error" id="err" role="alert"></p>
+      <button class="btn" type="submit">Sign in</button>
+    </form>
+  </main>
+<script>
+  const form = document.getElementById("login");
+  const err = document.getElementById("err");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector("button");
+    btn.disabled = true; err.textContent = "";
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: form.password.value }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (res.ok) { location.href = "/"; return; }
+      err.textContent = body.error || "Could not sign in.";
+    } catch {
+      err.textContent = "Could not reach the server. Check your connection.";
+    }
+    btn.disabled = false;
+  });
+</script>
+</body>
+</html>

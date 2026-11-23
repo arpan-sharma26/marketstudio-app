@@ -1,0 +1,10 @@
+# Copy to .dev.vars for local development (never commit .dev.vars).
+APP_PASSWORD=choose-a-strong-password
+SESSION_SECRET=paste-a-random-string-of-at-least-32-characters
+META_ACCESS_TOKEN=
+META_APP_SECRET=
+META_ACCOUNT_BLOOMING_STEPS=
+META_ACCOUNT_BLOOMING_MINDS=
+META_ACCOUNT_LOGICDENTAL=
+# Optional
+# META_API_VERSION=v24.0
