@@ -2,7 +2,7 @@
 // Read-only: needs a token with the ads_read permission.
 import { hmacHex } from "./auth.js";
 
-const DEFAULT_VERSION = "v24.0";
+const DEFAULT_VERSION = "v27.0";
 const BASE_FIELDS = [
   "spend", "impressions", "reach", "frequency", "clicks", "inline_link_clicks",
   "ctr", "cpm", "actions", "account_currency",
