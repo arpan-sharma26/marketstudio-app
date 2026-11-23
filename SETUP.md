@@ -77,6 +77,7 @@ The token is read-only. The dashboard cannot change budgets, ads or anything els
 | `META_ACCOUNT_BLOOMING_STEPS` | Blooming Steps ad account ID |
 | `META_ACCOUNT_BLOOMING_MINDS` | Blooming Minds ad account ID |
 | `META_ACCOUNT_LOGICDENTAL` | LogicDental Ai ad account ID |
+| `META_TOKEN_<CLIENT>` | Optional per-client token, e.g. `META_TOKEN_LOGICDENTAL`. Overrides `META_ACCESS_TOKEN` for that client. |
 
 6. **Deployments → latest → Retry deployment** so the new variables take effect.
 7. **Custom domains → Set up a custom domain** → `app.marketstudio.ca`.
@@ -94,6 +95,30 @@ In GoDaddy → **My Products → marketstudio.ca → DNS → Add new record**:
 
 This doesn't touch the main website (`www` and the apex records stay as they are).
 Cloudflare issues the HTTPS certificate automatically, usually within 15 minutes.
+
+---
+
+## Quick start: one client with your personal login (60-day token)
+
+Use this when your login can run a client's ads but you are not an admin of
+that client's business portfolio (so you cannot create a system user). Each
+client can have its own token, so clients with separate logins work too.
+
+1. **developers.facebook.com → My Apps → Create app.** Use case: *Create & manage
+   ads with Marketing API* (or *Other* → *Business*). Skip connecting a business portfolio if asked.
+2. Open **[Graph API Explorer](https://developers.facebook.com/tools/explorer/)**.
+   Pick your app at the top right, choose *User Token*, add the permission
+   **ads_read**, and click **Generate Access Token**. Approve the pop-up.
+3. Click the **ⓘ** next to the token → **Open in Access Token Tool** →
+   **Extend Access Token**. Copy the long token it shows (valid about 60 days).
+4. In Cloudflare, add for that client (LogicDental shown):
+   - `META_TOKEN_LOGICDENTAL` = the extended token (type **Secret**)
+   - `META_ACCOUNT_LOGICDENTAL` = the ad account ID
+5. Leave `META_APP_SECRET` unset if different clients' tokens come from different apps.
+
+When the token expires the dashboard says so on that client's card. Repeat
+steps 2–3 and update the variable. A system user token (above) never expires,
+so switch to it once you are an admin of the portfolio.
 
 ---
 

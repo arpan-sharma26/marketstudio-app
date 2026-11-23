@@ -46,14 +46,14 @@ export class MetaApiError extends Error {
   }
 }
 
-async function graphGet(env, path, params) {
+async function graphGet(env, token, path, params) {
   const base = (env.META_GRAPH_BASE || "https://graph.facebook.com").replace(/\/$/, "");
   const version = env.META_API_VERSION || DEFAULT_VERSION;
   const url = new URL(`${base}/${version}/${path}`);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, typeof v === "string" ? v : JSON.stringify(v));
-  url.searchParams.set("access_token", env.META_ACCESS_TOKEN);
+  url.searchParams.set("access_token", token);
   if (env.META_APP_SECRET) {
-    url.searchParams.set("appsecret_proof", await hmacHex(env.META_APP_SECRET, env.META_ACCESS_TOKEN));
+    url.searchParams.set("appsecret_proof", await hmacHex(env.META_APP_SECRET, token));
   }
 
   const rows = [];
@@ -81,19 +81,19 @@ function previousRange(since, until) {
 }
 
 // Everything the dashboard shows for one ad account and date range.
-export async function accountReport(env, accountId, since, until) {
+export async function accountReport(env, token, accountId, since, until) {
   const range = { since, until };
   const prev = previousRange(since, until);
   const fields = BASE_FIELDS.join(",");
 
   const [totals, previous, daily, campaigns, campaignInfo] = await Promise.all([
-    graphGet(env, `${accountId}/insights`, { fields, time_range: range }),
-    graphGet(env, `${accountId}/insights`, { fields, time_range: prev }),
-    graphGet(env, `${accountId}/insights`, { fields, time_range: range, time_increment: "1", limit: "500" }),
-    graphGet(env, `${accountId}/insights`, {
+    graphGet(env, token, `${accountId}/insights`, { fields, time_range: range }),
+    graphGet(env, token, `${accountId}/insights`, { fields, time_range: prev }),
+    graphGet(env, token, `${accountId}/insights`, { fields, time_range: range, time_increment: "1", limit: "500" }),
+    graphGet(env, token, `${accountId}/insights`, {
       fields: `campaign_id,campaign_name,objective,${fields}`, level: "campaign", time_range: range, limit: "200",
     }),
-    graphGet(env, `${accountId}/campaigns`, { fields: "id,effective_status", limit: "200" }).catch(() => []),
+    graphGet(env, token, `${accountId}/campaigns`, { fields: "id,effective_status", limit: "200" }).catch(() => []),
   ]);
 
   const status = Object.fromEntries(campaignInfo.map((c) => [c.id, c.effective_status]));

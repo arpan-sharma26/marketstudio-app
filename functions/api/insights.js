@@ -16,7 +16,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const days = (Date.parse(until) - Date.parse(since)) / 86400e3 + 1;
   if (days > 400) return json({ error: "Pick a range of 400 days or less." }, 400);
 
-  if (!env.META_ACCESS_TOKEN) {
+  const tokenFor = (c) => env[c.tokenEnv] || env.META_ACCESS_TOKEN;
+  if (!CLIENTS.some(tokenFor)) {
     return json({ setupNeeded: true, clients: CLIENTS.map(publicClient) });
   }
 
@@ -31,9 +32,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const clients = await Promise.all(
     CLIENTS.map(async (c) => {
       const accountId = normalizeAccountId(env[c.accountEnv]);
-      if (!accountId) return { ...publicClient(c), connected: false };
+      const token = tokenFor(c);
+      if (!accountId || !token) return { ...publicClient(c), connected: false };
       try {
-        const report = await accountReport(env, accountId, since, until);
+        const report = await accountReport(env, token, accountId, since, until);
         return { ...publicClient(c), connected: true, ...report };
       } catch (err) {
         return { ...publicClient(c), connected: true, error: friendlyError(err) };
@@ -61,7 +63,7 @@ function withNoStore(res) {
 }
 
 function friendlyError(err) {
-  if (err && err.code === 190) return "The Meta access token has expired or was revoked. Create a new one and update META_ACCESS_TOKEN.";
+  if (err && err.code === 190) return "The Meta access token has expired or was revoked. Create a new one and update it in Cloudflare.";
   if (err && (err.code === 200 || err.code === 10)) return "The token does not have access to this ad account. Assign the account to the system user in Business Settings.";
   if (err && (err.code === 4 || err.code === 17 || err.code === 613 || err.code === 80004)) return "Meta is rate limiting requests. Try again in a few minutes.";
   return `Meta API error: ${err && err.message ? err.message : "unknown"}`;
